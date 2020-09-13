@@ -3,9 +3,9 @@ Install ARM images
 
 Install base-install images for select SBC devices
 
-Make a temporary folder in your home directory.
+    # Make a temporary folder in your home directory.
 
-Change Directory to the folder you just made
+    # Change Directory to the folder you just made
 
 Do a git clone https://github.com/endeavouros-arm/image-install.git
 
