@@ -19,5 +19,4 @@ Install base-install images for select SBC devices
 
     # Also check that install-image.sh has root root as ownership. If not do, # chown root:root install-image.sh
 
-
     # ./install-image.sh
