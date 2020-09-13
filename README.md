@@ -12,4 +12,4 @@ ls -l
 Check if install-image.sh is executable. If not make it executable.
 also check that install-image.sh has root root as ownership. If not do, # chown root:root install-image.sh
 
-# ./install-image.sh
+    # ./install-image.sh
