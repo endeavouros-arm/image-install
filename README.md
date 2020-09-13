@@ -17,6 +17,7 @@ Install base-install images for select SBC devices
 
     Check if install-image.sh is executable. If not make it executable.
 
-    Also check that install-image.sh has root root as ownership. If not do, # chown root:root install-image.sh
+    Also check that install-image.sh has root root as ownership.
+    If not do, # chown root:root install-image.sh
 
     # ./install-image.sh
