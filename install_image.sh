@@ -194,7 +194,7 @@ case $devicemodel in
    RPi4)      install_RPi4_image ;;
 esac
 
-
+printf "\n\nAlmost done! Just a couple of minutes more for the last step.\n\n"
 case $devicemodel in
    OdroidN2 | RPi4) umount MP1 MP2
                     rm -rf MP1 MP2 ;;
