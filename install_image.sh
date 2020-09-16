@@ -194,7 +194,7 @@ case $devicemodel in
    RPi4)      install_RPi4_image ;;
 esac
 
-printf "\n\nAlmost done! Just a couple of minutes more for the last step.\n\n"
+printf "\n\n${CYAN}Almost done! Just a couple of minutes more for the last step.${NC}\n\n"
 case $devicemodel in
    OdroidN2 | RPi4) umount MP1 MP2
                     rm -rf MP1 MP2 ;;
@@ -204,11 +204,11 @@ esac
 
 rm ArchLinuxARM*
 
-printf "\n\nEnd of script!\n"
-printf "\nBe sure to use a file manager to umount the device before removing the USB SD reader\n"
+printf "\n\n${CYAN}End of script!${NC}\n"
+printf "\n${CYAN}Be sure to use a file manager to umount the device before removing the USB SD reader${NC}\n"
 
-printf "\nThe default user is alarm with the password alarm\n"
-printf "The default root password is root\n\n\n"
+printf "\n${CYAN}The default user is ${NC}alarm${CYAN} with the password ${NC}alarm\n"
+printf "${CYAN}The default root password is ${NC}root\n\n\n"
 
 exit
 
