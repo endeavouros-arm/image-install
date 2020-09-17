@@ -16,10 +16,6 @@ Currently, this will work on the Odroid N2 / N2+ the Odroid XU4 and the Raspberr
     
     Open a terminal window
     
-    Make a temporary folder in the liveuser home directory.
-
-    Change Directory to the folder you just made
-    
     $ git clone https://github.com/endeavouros-arm/image-install.git
 
     $ cd image-install
