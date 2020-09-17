@@ -93,6 +93,7 @@ function partition_format() {
    printf "\n${CYAN}Partitioning storage device $devicename...${NC}\n"
    printf "\ndevicename = $devicename     devicesize=$devicesize\n" >> /root/enosARM.log
    # umount partitions before partitioning and formatting
+   # unmount all partitions on $devicename and umount them
    lsblk $devicename -o MOUNTPOINT | grep /run/media > mounts
    count=$(wc -l mounts | awk '{print $1}')
    if [ $count -gt 0 ]
@@ -100,7 +101,7 @@ function partition_format() {
       for ((i = 1 ; i <= $count ; i++))
       do
          u=$(awk -v "x=$i" 'NR==x' mounts)
-         umount $u
+         umount -l $u
       done
    fi
    rm mounts
@@ -196,9 +197,9 @@ esac
 
 printf "\n\n${CYAN}Almost done! Just a couple of minutes more for the last step.${NC}\n\n"
 case $devicemodel in
-   OdroidN2 | RPi4) umount MP1 MP2
+   OdroidN2 | RPi4) umount -l MP1 MP2
                     rm -rf MP1 MP2 ;;
-   OdroidXU4)       umount MP1
+   OdroidXU4)       umount -l MP1
                     rm -rf MP1 ;;
 esac
 
