@@ -12,12 +12,11 @@ Install base-install images for select SBC devices
     Change Directory to image-install
 
     $ su  then enter root password.  Do not sudo the script, run as root
+    If running the script from the EndeavourOS Live ISO, then
+    $ sudo su
 
     # ls -l
 
     Check if install-image.sh is executable. If not make it executable.
-
-    Also check that install-image.sh has root root as ownership.
-    If not do, # chown root:root install-image.sh
 
     # ./install_image.sh
