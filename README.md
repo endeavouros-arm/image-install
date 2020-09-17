@@ -12,13 +12,17 @@ Currently, this will work on the Odroid N2 / N2+ the Odroid XU4 and the Raspberr
     Boot into the msdos/MBR version of the EndeavourOS installer ISO.
     Insert the USB cardreader containing the micro SD or eMMC card.
     
+    IMPORTANT: Make sure ALL apps are closed, especially any file manager such as Thunar.
+    
+    Open a terminal window
+    
     Make a temporary folder in the liveuser home directory.
 
     Change Directory to the folder you just made
-
+    
     $ git clone https://github.com/endeavouros-arm/image-install.git
 
-    Change Directory to image-install
+    $ cd image-install
 
     $ sudo su
 
