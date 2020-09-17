@@ -10,7 +10,8 @@ Currently, this will work on the Odroid N2 / N2+ the Odroid XU4 and the Raspberr
     cleaning up directories and files created during the flash process is not necessary as the ISO is not persistent.
     It is also a known safe environment and eliminates any chance of borking your daily driver machine.
     
-    Boot into the msdos/MBR version of the EndeavourOS installer ISO.  Insert the USB cardreader containing the micro SD or eMMC card.
+    Boot into the msdos/MBR version of the EndeavourOS installer ISO.
+    Insert the USB cardreader containing the micro SD or eMMC card.
     
     Make a temporary folder in the liveuser home directory.
 
