@@ -66,12 +66,12 @@ function install_OdroidXU4_image() {
 
 function partition_format() {
    finished=1
-   base_dialog_content="The following storage devices were found\n\n$(lsblk -o NAME,FSTYPE,FSUSED,FSAVAIL,SIZE,MOUNTPOINT)\n\n \
+   base_dialog_content="\nThe following storage devices were found\n\n$(lsblk -o NAME,FSTYPE,FSUSED,FSAVAIL,SIZE,MOUNTPOINT)\n\n \
    Enter target device name (e.g. /dev/sda):"
    dialog_content="$base_dialog_content"
    while [ $finished -ne 0 ]
    do
-       devicename=$(whiptail --title "EndeavourOS ARM Setup - micro SD Configuration" --inputbox "$dialog_content" 25 80 3>&2 2>&1 1>&3)
+       devicename=$(whiptail --title "EndeavourOS ARM Setup - micro SD Configuration" --inputbox "$dialog_content" 27 80 3>&2 2>&1 1>&3)
       exit_status=$?
       if [ $exit_status == "1" ]; then
       printf "\nScript aborted by user\n\n"
@@ -84,7 +84,8 @@ function partition_format() {
       else 
          finished=0
       fi
-   done    
+   done
+    
    ##### Determine data device size in MiB and partition ###
    printf "\n${CYAN}Partitioning, & formatting storage device...${NC}\n"
    devicesize=$(fdisk -l | grep "Disk $devicename" | awk '{print $5}')
@@ -133,6 +134,17 @@ RED='\033[0;31m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
+export NEWT_COLORS='
+root=,magenta
+roottext=brighrblue,black
+title=white,blue
+window=white,brightblue
+border=white,blue
+textbox=black,brightblue
+button=black,brightmagenta
+entry=black,brightblue
+listbox=black,brightblue
+'
 
 ##### check to see if script was run as root #####
 if [ $(id -u) -ne 0 ]
@@ -157,9 +169,12 @@ case "$armarch" in
         armv7*) armarch=armv7h ;;
 esac
 
-pacman -S --noconfirm --needed libnewt # for whiplash dialog
+#pkill thunar
+pkill Thunar
 
-devicemodel=$(whiptail --title " SBC type Selection" --menu --notags "            Choose which SBC to install or Press right arrow twice to cancel" 17 100 4 \
+pacman -S --noconfirm --needed libnewt &>/dev/null # for whiplash dialog
+
+devicemodel=$(whiptail --title " SBC Model Selection" --menu --notags "\n            Choose which SBC to install or Press right arrow twice to cancel" 17 100 4 \
          "0" "Odroid N2 or N2+" \
          "1" "Odroid XU4" \
          "2" "Raspberry Pi Model 4b" \
