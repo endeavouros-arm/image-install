@@ -44,15 +44,15 @@ function install_OdroidN2_image() {
 }   # End of function install_OdroidN2_image
 
 function install_RPi4_image() {
-#   wget http://os.archlinuxarm.org/os/ArchLinuxARM-rpi-aarch64-latest.tar.gz
-   wget http://os.archlinuxarm.org/os/ArchLinuxARM-rpi-4-latest.tar.gz
+   wget http://os.archlinuxarm.org/os/ArchLinuxARM-rpi-aarch64-latest.tar.gz
+#   wget http://os.archlinuxarm.org/os/ArchLinuxARM-rpi-4-latest.tar.gz
    printf "\n\n${CYAN}Untarring the image...may take a few minutes.${NC}\n"
-#   bsdtar -xpf ArchLinuxARM-rpi-aarch64-latest.tar.gz -C MP2
-   bsdtar -xpf ArchLinuxARM-rpi-4-latest.tar.gz -C MP2
+   bsdtar -xpf ArchLinuxARM-rpi-aarch64-latest.tar.gz -C MP2
+#   bsdtar -xpf ArchLinuxARM-rpi-4-latest.tar.gz -C MP2
    printf "\n\n${CYAN}Syncing partitions...may take a few minutes.${NC}\n"
    sync
    mv MP2/boot/* MP1
-#   sed -i 's/mmcblk0/mmcblk1/g' MP2/etc/fstab
+   sed -i 's/mmcblk0/mmcblk1/g' MP2/etc/fstab
 }  # End of function install_RPi4_image
 
 function install_OdroidXU4_image() {
