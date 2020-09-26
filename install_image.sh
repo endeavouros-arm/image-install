@@ -115,13 +115,13 @@ function partition_format() {
    printf "\n${CYAN}Formatting partitions on storage device $devicename...${NC}\n"
    printf "\n${CYAN}If \"/dev/sdx contains a ext4 file system Labelled XXXX\" or similar appears, Enter: y${NC}\n\n\n"
    case $devicemodel in
-      OdroidN2 | RPi4) partitions=( $( blkid -o device $devicename) )
-                       partname1=${partitions[0]}
+      OdroidN2 | RPi4) blockdevices=( $( lsblk -ln -o NAME $devicename) )
+                       partname1="/dev/${blockdevices[1]}"
                        mkfs.fat $partname1   2>> /root/enosARM.log
-                       partname2=${partitions[1]}
+                       partname2="/dev/${blockdevices[2]}"
                        mkfs.ext4 $partname2   2>> /root/enosARM.log ;;
-      OdroidXU4)       partitions=( $( blkid -o device $devicename) )
-                       partname1=${partitions[0]}
+      OdroidXU4)       blockdevices=( $( lsblk -ln -o NAME $devicename) )
+                       partname1="/dev/${blockdevices[1]}"
                        mkfs.ext4 $partname1  2>> /root/enosARM.log ;;
    esac
 } # end of function partition_format
