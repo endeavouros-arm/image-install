@@ -35,12 +35,12 @@ function install_OdroidN2_image() {
    dd if=MP1/u-boot.bin of=$devicename conv=fsync,notrunc bs=512 seek=1
 
    # for Odroid N2 ask if storage device is micro SD or eMMC
-   whiptail  --title "EndeavourOS ARM Setup"  --yesno "                   Is the target device an eMMC card?" 7 80
+   whiptail  --title "EndeavourOS ARM Setup"  --yesno "                   Is the target device an eMMC card?" 7 80 
    user_confirmation="$?"
    if [ $user_confirmation == "0" ]
    then
       sed -i 's/mmcblk1/mmcblk0/g' MP2/etc/fstab
-   fi
+   fi    
 }   # End of function install_OdroidN2_image
 
 function install_RPi4_image() {
@@ -61,7 +61,7 @@ function install_OdroidXU4_image() {
    bsdtar -xpf ArchLinuxARM-odroid-xu3-latest.tar.gz -C MP1
    cd MP1/boot
    sh sd_fusing.sh $devicename
-   cd ../..
+   cd ../..   
 }   # End of function install_OdroidN2_image
 
 function partition_format() {
@@ -77,15 +77,15 @@ function partition_format() {
       printf "\nScript aborted by user\n\n"
       exit
       fi
-      if [[ ${devicename:0:5} != "/dev/" ]]; then
+      if [[ ${devicename:0:5} != "/dev/" ]]; then 
          dialog_content="Input improperly formatted. Try again.\n\n$base_dialog_content"
-      elif [[ ! -b "$devicename" ]]; then
+      elif [[ ! -b "$devicename" ]]; then  
          dialog_content="Not a block device. Try again.\n\n$base_dialog_content"
-      else
+      else 
          finished=0
       fi
    done
-
+    
    ##### Determine data device size in MiB and partition ###
    printf "\n${CYAN}Partitioning, & formatting storage device...${NC}\n"
    devicesize=$(fdisk -l | grep "Disk $devicename" | awk '{print $5}')
@@ -111,17 +111,15 @@ function partition_format() {
        OdroidXU4) partition_OdroidXU4 ;;
        RPi4)      partition_RPi4 ;;
    esac
-   printf "\ndevice name = $devicename\n\n" >> /root/enosARM.log
-   printf "\n${CYAN}Formatting partitions on storage device $devicename...${NC}\n"
+   printf "\npartition name = $devicename\n\n" >> /root/enosARM.log
+   printf "\n${CYAN}Formatting storage device $devicename...${NC}\n"
    printf "\n${CYAN}If \"/dev/sdx contains a ext4 file system Labelled XXXX\" or similar appears, Enter: y${NC}\n\n\n"
    case $devicemodel in
-      OdroidN2 | RPi4) blockdevices=( $( lsblk -ln -o NAME $devicename) )
-                       partname1="/dev/${blockdevices[1]}"
+      OdroidN2 | RPi4) partname1=$devicename"1"
                        mkfs.fat $partname1   2>> /root/enosARM.log
-                       partname2="/dev/${blockdevices[2]}"
+                       partname2=$devicename"2"
                        mkfs.ext4 $partname2   2>> /root/enosARM.log ;;
-      OdroidXU4)       blockdevices=( $( lsblk -ln -o NAME $devicename) )
-                       partname1="/dev/${blockdevices[1]}"
+      OdroidXU4)       partname1=$devicename"1"
                        mkfs.ext4 $partname1  2>> /root/enosARM.log ;;
    esac
 } # end of function partition_format
@@ -152,10 +150,10 @@ listbox=black,brightblue
 if [ $(id -u) -ne 0 ]
 then
    whiptail_installed=$(pacman -Qs libnewt)
-   if [[ "$whiptail_installed" != "" ]]; then
+   if [[ "$whiptail_installed" != "" ]]; then 
       whiptail --title "Error - Cannot Continue" --msgbox "Please run this script as root" 8 47
       exit
-   else
+   else 
       printf "${RED}Error - Cannot Continue. Please run this script with as root.${NC}\n"
       exit
    fi
@@ -199,7 +197,7 @@ partition_format  # function to partition and format a micro SD card or eMMC car
 
 case $devicemodel in
    OdroidN2 | RPi4)  mkdir MP1
-                     mkdir MP2
+                     mkdir MP2 
                      mount $partname1 MP1
                      mount $partname2 MP2 ;;
    OdroidXU4)        mkdir MP1
@@ -229,3 +227,4 @@ printf "\n${CYAN}The default user is ${NC}alarm${CYAN} with the password ${NC}al
 printf "${CYAN}The default root password is ${NC}root\n\n\n"
 
 exit
+
