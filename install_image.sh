@@ -85,11 +85,6 @@ function partition_format() {
          finished=0
       fi
    done
-  
-if [[ ${devicename:5:6} = "mmcblk" ]]
-then
-   devicename=$devicename"p"
-fi
 
    ##### Determine data device size in MiB and partition ###
    printf "\n${CYAN}Partitioning, & formatting storage device...${NC}\n"
@@ -119,6 +114,10 @@ fi
    printf "\npartition name = $devicename\n\n" >> /root/enosARM.log
    printf "\n${CYAN}Formatting storage device $devicename...${NC}\n"
    printf "\n${CYAN}If \"/dev/sdx contains a ext4 file system Labelled XXXX\" or similar appears, Enter: y${NC}\n\n\n"
+   if [[ ${devicename:5:6} = "mmcblk" ]]
+   then
+      devicename=$devicename"p"
+   fi
    case $devicemodel in
       OdroidN2 | RPi4) partname1=$devicename"1"
                        mkfs.fat $partname1   2>> /root/enosARM.log
