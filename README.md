@@ -14,7 +14,7 @@ Currently, this will work on the Odroid N2 / N2+ the Odroid XU4 and the Raspberr
     
     IMPORTANT: Make sure ALL apps are closed, especially any file manager such as Thunar.
     
-    Open a terminal window
+    Open a terminal window, for best results resize the window to 130 x 30 minimum or full screen
     
     $ git clone https://github.com/endeavouros-arm/image-install.git
 

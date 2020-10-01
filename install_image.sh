@@ -66,12 +66,12 @@ function install_OdroidXU4_image() {
 
 function partition_format() {
    finished=1
-   base_dialog_content="\nThe following storage devices were found\n\n$(lsblk -o NAME,FSTYPE,FSUSED,FSAVAIL,SIZE,MOUNTPOINT)\n\n \
-   Enter target device name (e.g. /dev/sda):"
+   base_dialog_content="\nThe following storage devices were found\n\n$(lsblk -o NAME,MODEL,FSTYPE,SIZE,FSUSED,FSAVAIL,MOUNTPOINT)\n\n \
+   Enter target device name (e.g. /dev/sda or /dev/mmcblk0):"
    dialog_content="$base_dialog_content"
    while [ $finished -ne 0 ]
    do
-       devicename=$(whiptail --title "EndeavourOS ARM Setup - micro SD Configuration" --inputbox "$dialog_content" 27 80 3>&2 2>&1 1>&3)
+       devicename=$(whiptail --title "EndeavourOS ARM Setup - micro SD Configuration" --inputbox "$dialog_content" 27 115 3>&2 2>&1 1>&3)
       exit_status=$?
       if [ $exit_status == "1" ]; then
       printf "\nScript aborted by user\n\n"
@@ -85,7 +85,12 @@ function partition_format() {
          finished=0
       fi
    done
-    
+  
+if [[ ${devicename:5:6} = "mmcblk" ]]
+then
+   devicename=$devicename"p"
+fi
+
    ##### Determine data device size in MiB and partition ###
    printf "\n${CYAN}Partitioning, & formatting storage device...${NC}\n"
    devicesize=$(fdisk -l | grep "Disk $devicename" | awk '{print $5}')
