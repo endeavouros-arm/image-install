@@ -147,6 +147,7 @@ function partition_format() {
 
 # set screen size
 printf '\e[8;35;130t'
+clear
 
 # Declare color variables
 GREEN='\033[0;32m'
