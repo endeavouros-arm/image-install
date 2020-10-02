@@ -1,7 +1,7 @@
 # image-install
 Install ARM images for select SBC devices.
 
-Currently, this will work on the Odroid N2 / N2+ the Odroid XU4 and the Raspberry Pi 4b 32 bit OS
+Currently, this will work on the Odroid N2 / N2+ the Odroid XU4 and the Raspberry Pi 4b
 
     
     On a working x86_64 computer, insert the latest USB EndeavourOS ISO installer.
