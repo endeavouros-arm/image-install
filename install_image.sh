@@ -67,24 +67,34 @@ function install_OdroidXU4_image() {
 function partition_format() {
    finished=1
    base_dialog_content="\nThe following storage devices were found\n\n$(lsblk -o NAME,MODEL,FSTYPE,SIZE,FSUSED,FSAVAIL,MOUNTPOINT)\n\n \
-   Enter target device name (e.g. /dev/sda or /dev/mmcblk0):"
+   Enter target device name without a partition designation (e.g. /dev/sda or /dev/mmcblk0):"
    dialog_content="$base_dialog_content"
    while [ $finished -ne 0 ]
    do
        devicename=$(whiptail --title "EndeavourOS ARM Setup - micro SD Configuration" --inputbox "$dialog_content" 27 115 3>&2 2>&1 1>&3)
       exit_status=$?
-      if [ $exit_status == "1" ]; then
-      printf "\nScript aborted by user\n\n"
-      exit
+      if [ $exit_status == "1" ]; then           
+         printf "\nScript aborted by user\n\n"
+         exit
       fi
-      if [[ ${devicename:0:5} != "/dev/" ]]; then 
-         dialog_content="Input improperly formatted. Try again.\n\n$base_dialog_content"
-      elif [[ ! -b "$devicename" ]]; then  
-         dialog_content="Not a block device. Try again.\n\n$base_dialog_content"
-      else 
-         finished=0
-      fi
+      if [[ ! -b "$devicename" ]]; then  
+         dialog_content="$base_dialog_content\n    Not a listed block device, or not prefaced by /dev/ Try again."
+      else   
+         case $devicename in
+            /dev/sd*)     if [[ ${#devicename} -eq 8 ]]; then 
+                             finished=0
+                          else
+                             dialog_content="\nInput improperly formatted. Try again.\n$base_dialog_content"   
+                          fi ;;
+            /dev/mmcblk*) if [[ ${#devicename} -eq 12 ]]; then 
+                             finished=0
+                          else
+                             dialog_content="$base_dialog_content\n    Input improperly formatted. Try again."   
+                          fi ;;
+         esac
+      fi      
    done
+
 
    ##### Determine data device size in MiB and partition ###
    printf "\n${CYAN}Partitioning, & formatting storage device...${NC}\n"
@@ -114,10 +124,12 @@ function partition_format() {
    printf "\npartition name = $devicename\n\n" >> /root/enosARM.log
    printf "\n${CYAN}Formatting storage device $devicename...${NC}\n"
    printf "\n${CYAN}If \"/dev/sdx contains a ext4 file system Labelled XXXX\" or similar appears, Enter: y${NC}\n\n\n"
+
    if [[ ${devicename:5:6} = "mmcblk" ]]
    then
       devicename=$devicename"p"
    fi
+   
    case $devicemodel in
       OdroidN2 | RPi4) partname1=$devicename"1"
                        mkfs.fat $partname1   2>> /root/enosARM.log
@@ -131,6 +143,9 @@ function partition_format() {
 #################################################
 # beginning of script
 #################################################
+
+# set screen size
+printf '\e[8;35;130t'
 
 # Declare color variables
 GREEN='\033[0;32m'
