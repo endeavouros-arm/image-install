@@ -84,7 +84,7 @@ function partition_format() {
             /dev/sd*)     if [[ ${#devicename} -eq 8 ]]; then 
                              finished=0
                           else
-                             dialog_content="\nInput improperly formatted. Try again.\n$base_dialog_content"   
+                             dialog_content="$base_dialog_content\n    Input improperly formatted. Try again."   
                           fi ;;
             /dev/mmcblk*) if [[ ${#devicename} -eq 12 ]]; then 
                              finished=0
