@@ -64,6 +64,7 @@ function install_OdroidXU4_image() {
    cd ../..   
 }   # End of function install_OdroidN2_image
 
+
 function partition_format() {
    finished=1
    base_dialog_content="\nThe following storage devices were found\n\n$(lsblk -o NAME,MODEL,FSTYPE,SIZE,FSUSED,FSAVAIL,MOUNTPOINT)\n\n \
@@ -177,6 +178,8 @@ then
       exit
    fi
 fi
+
+whiptail --title "CAUTION" --msgbox "Ensure ALL apps are closed, especially any file manager such as Thunar" 8 74 3>&2 2>&1 1>&3
 
 dmesg -n 1 # prevent low level kernel messages from appearing during the script
 # create empty /root/enosARM.log
