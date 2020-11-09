@@ -155,17 +155,17 @@ RED='\033[0;31m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-export NEWT_COLORS='
-root=,magenta
-roottext=brighrblue,black
-title=white,blue
-window=white,brightblue
-border=white,blue
-textbox=black,brightblue
-button=black,brightmagenta
-entry=black,brightblue
-listbox=black,brightblue
-'
+# export NEWT_COLORS='
+# root=,magenta
+# roottext=brighrblue,black
+# title=white,blue
+# window=white,brightblue
+# border=white,blue
+# textbox=black,brightblue
+# button=black,brightmagenta
+# entry=black,brightblue
+# listbox=black,brightblue
+
 
 ##### check to see if script was run as root #####
 if [ $(id -u) -ne 0 ]
