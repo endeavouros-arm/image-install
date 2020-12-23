@@ -14,8 +14,8 @@ function partition_RPi4() {
    parted --script -a minimal $devicename \
    mklabel msdos \
    unit mib \
-   mkpart primary fat32 2MiB 258MiB \
-   mkpart primary 258MiB $devicesize"MiB" \
+   mkpart primary fat32 4MiB 262MiB \
+   mkpart primary 262MiB $devicesize"MiB" \
    quit
 }
 
