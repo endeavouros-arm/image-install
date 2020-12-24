@@ -24,4 +24,4 @@ Currently, this will work on the Odroid N2 / N2+ the Odroid XU4 the Raspberry Pi
 
     $ sudo ./install-image-V2.0.sh
     
-    When completed, use a file manager to umount the USB card reader.
+    When completed, use a file manager to unmount the USB card reader.
