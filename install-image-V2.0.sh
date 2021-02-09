@@ -194,8 +194,8 @@ pacman -S --noconfirm --needed libnewt &>/dev/null # for whiplash dialog
 devicemodel=$(whiptail --title " SBC Model Selection" --menu --notags "\n            Choose which SBC to install or Press right arrow twice to cancel" 17 100 4 \
          "0" "Odroid N2 or N2+" \
          "1" "Odroid XU4" \
-         "2" "Raspberry Pi Model 4b - 64 bit" \
-         "3" "Raspberry Pi 400 - 32 bit" \
+         "2" "Raspberry Pi Model 4b 4 GB - 64 bit" \
+         "3" "Raspberry Pi 4b or 400 - 32 bit" \
          3>&2 2>&1 1>&3)
 
 if [[ "$devicemodel" = "" ]]
