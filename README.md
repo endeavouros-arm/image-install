@@ -5,7 +5,10 @@ Currently, this will work on the Odroid N2 / N2+ the Odroid XU4 the Raspberry Pi
 
     
     On a working Linux computer, the faster the better, insert the USB
-    card reader containing the micro SD or eMMC card
+    card reader containing the micro SD or eMMC card or external USB SSD enclosure
+      Odroid N2 and Odroid XU4 the choices are micro SD card or eMMC card
+      Raspberry Pi model 4b 4 GB ram 64 bit is micro SD card only
+      Raspberry Pi model 4b 4 GB/8 GB ram and Raspberry Pi 400 32 Bit the choices are micro SD or USB SSD
      
     IMPORTANT: Make sure ALL apps are closed, especially any file manager such as Thunar.
     
@@ -20,8 +23,8 @@ Currently, this will work on the Odroid N2 / N2+ the Odroid XU4 the Raspberry Pi
 
     $ ls -l
 
-    Check if install-image-V2.0.sh is executable. If not make it executable.
+    Check if install-image-V2.3.sh is executable. If not make it executable.
 
-    $ sudo ./install-image-V2.0.sh
+    $ sudo ./install-image-V2.3.sh
     
     When completed, use a file manager to unmount the USB card reader.
