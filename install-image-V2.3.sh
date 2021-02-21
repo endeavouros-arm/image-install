@@ -60,20 +60,24 @@ function install_RPi4_image() {
       sed -i 's/mmcblk0/mmcblk1/g' MP2/etc/fstab
    fi
    
-   user_confirm=$(whiptail --title " Storage Device Selection" --menu --notags "\n          Choose Storage Device or Press right arrow twice to cancel" 17 100 2 \
+   if [ $devicemodel == "RPi400" ]
+   then
+      user_confirm=$(whiptail --title " Storage Device Selection" --menu --notags "\n             Choose Storage Device or Press right arrow twice to cancel" 17 100 2 \
          "0" "micro SD card" \
          "1" "External USB SSD enclosure" \
          3>&2 2>&1 1>&3)
-   if [[ "$user_confirm" = "" ]]
-   then
-      printf "\n\nScript aborted by user..${NC}\n\n" && exit
-   else
-      if [ $user_confirm == "1" ]
+      if [[ "$user_confirm" = "" ]]
       then
-         sed -i 's/root=\/dev\/mmcblk0p2/root=\/dev\/sda2/g' MP1/cmdline.txt
-         sed -i 's/mmcblk0p1/sda1/g' MP2/etc/fstab
+         printf "\n\nScript aborted by user..${NC}\n\n" && exit
+      else
+         if [ $user_confirm == "1" ]
+         then
+            sed -i 's/root=\/dev\/mmcblk0p2/root=\/dev\/sda2/g' MP1/cmdline.txt
+            sed -i 's/mmcblk0p1/sda1/g' MP2/etc/fstab
+         fi
       fi
-   fi
+   fi 
+   
 }  # End of function install_RPi4_image
 
 function install_OdroidXU4_image() {
