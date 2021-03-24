@@ -1,14 +1,14 @@
 # image-install
 Install ARM images for select SBC devices.
 
-Currently, this will work on the Odroid N2 / N2+ the Odroid XU4 the Raspberry Pi 4b and the Raspberry Pi 400
+Currently, this will work on the Odroid N2 / N2+ the Odroid XU4 and the Raspberry Pi 4 series
 
     
     On a working Linux computer, the faster the better, insert the USB
     card reader containing the micro SD or eMMC card or external USB SSD enclosure
       Odroid N2 and Odroid XU4 the choices are micro SD card or eMMC card
-      Raspberry Pi model 4b 4 GB ram 64 bit is micro SD card only
-      Raspberry Pi model 4b 4 GB/8 GB ram and Raspberry Pi 400 32 Bit the choices are micro SD or USB SSD
+      Raspberry Pi model 4b 4GB ram 64 bit OS is micro SD card only
+      Raspberry Pi model 4 series 32 bit OS the choices are micro SD or external USB SSD
      
     IMPORTANT: Make sure ALL apps are closed, especially any file manager such as Thunar.
     
@@ -23,8 +23,8 @@ Currently, this will work on the Odroid N2 / N2+ the Odroid XU4 the Raspberry Pi
 
     $ ls -l
 
-    Check if install-image-V2.3.sh is executable. If not make it executable.
+    Check if install-image-V2.X.sh is executable. If not make it executable.
 
-    $ sudo ./install-image-V2.3.sh
+    $ sudo ./install-image-V2.X.sh
     
     When completed, use a file manager to unmount the USB card reader.
