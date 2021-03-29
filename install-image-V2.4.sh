@@ -205,7 +205,6 @@ case "$armarch" in
         armv7*) armarch=armv7h ;;
 esac
 
-#pkill thunar
 pkill Thunar
 
 pacman -S --noconfirm --needed libnewt &>/dev/null # for whiplash dialog
