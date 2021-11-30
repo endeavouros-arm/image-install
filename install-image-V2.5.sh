@@ -57,9 +57,9 @@ function install_RPi4_image() {
       RPi4b)  wget http://os.archlinuxarm.org/os/ArchLinuxARM-rpi-aarch64-latest.tar.gz
               printf "\n\n${CYAN}Untarring the image...may take a few minutes.${NC}\n"
               bsdtar -xpf ArchLinuxARM-rpi-aarch64-latest.tar.gz -C MP2 ;;         
-      RPi400) wget http://os.archlinuxarm.org/os/ArchLinuxARM-rpi-4-latest.tar.gz
+      RPi400) wget http://os.archlinuxarm.org/os/ArchLinuxARM-rpi-armv7-latest.tar.gz
               printf "\n\n${CYAN}Untarring the image...may take a few minutes.${NC}\n"
-              bsdtar -xpf ArchLinuxARM-rpi-4-latest.tar.gz -C MP2 ;;
+              bsdtar -xpf ArchLinuxARM-rpi-armv7-latest.tar.gz -C MP2 ;;
    esac
    printf "\n\n${CYAN}syncing files...may take a few minutes.${NC}\n"
    sync
