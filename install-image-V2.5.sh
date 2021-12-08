@@ -12,10 +12,10 @@ function partition_OdroidN2() {
 
 function partition_RPi4() {
    parted --script -a minimal $devicename \
-   mklabel msdos \
-   unit MB \
-   mkpart primary fat32 2MB 202MB \
-   mkpart primary 202MB $devicesize"MiB" \
+   mklabel gpt \
+   unit MiB \
+   mkpart primary fat32 2MiB 202MiB \
+   mkpart primary ext4 202MiB $devicesize"MiB" \
    quit
 }
 
