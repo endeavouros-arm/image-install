@@ -1,0 +1,171 @@
+#!/bin/bash
+
+
+function partition_RPi4() {
+   parted --script -a minimal $devicename \
+   mklabel gpt \
+   unit MiB \
+   mkpart primary fat32 2MiB 202MiB \
+   mkpart primary ext4 202MiB $devicesize"MiB" \
+   quit
+}
+
+function partition_format() {
+   finished=1
+   base_dialog_content="\nThe following storage devices were found\n\n$(lsblk -o NAME,MODEL,FSTYPE,SIZE,FSUSED,FSAVAIL,MOUNTPOINT)\n\n \
+   Enter target device name without a partition designation (e.g. /dev/sda or /dev/mmcblk0):"
+   dialog_content="$base_dialog_content"
+   while [ $finished -ne 0 ]
+   do
+       devicename=$(whiptail --title "EndeavourOS ARM Setup - micro SD Configuration" --inputbox "$dialog_content" 27 115 3>&2 2>&1 1>&3)
+      exit_status=$?
+      if [ $exit_status == "1" ]; then
+         printf "\nScript aborted by user\n\n"
+         exit
+      fi
+      if [[ ! -b "$devicename" ]]; then
+         dialog_content="$base_dialog_content\n    Not a listed block device, or not prefaced by /dev/ Try again."
+      else
+         case $devicename in
+            /dev/sd*)     if [[ ${#devicename} -eq 8 ]]; then
+                             finished=0
+                          else
+                             dialog_content="$base_dialog_content\n    Input improperly formatted. Try again."
+                          fi ;;
+            /dev/mmcblk*) if [[ ${#devicename} -eq 12 ]]; then
+                             finished=0
+                          else
+                             dialog_content="$base_dialog_content\n    Input improperly formatted. Try again."
+                          fi ;;
+         esac
+      fi
+   done
+
+
+   ##### Determine data device size in MiB and partition ###
+   printf "\n${CYAN}Partitioning, & formatting storage device...${NC}\n"
+   devicesize=$(fdisk -l | grep "Disk $devicename" | awk '{print $5}')
+   ((devicesize=$devicesize/1048576))
+   ((devicesize=$devicesize-1))  # for some reason, necessary for USB thumb drives
+   printf "\n${CYAN}Partitioning storage device $devicename...${NC}\n"
+
+   # umount partitions before partitioning and formatting
+   lsblk $devicename -o MOUNTPOINT | grep /run/media > mounts
+   count=$(wc -l mounts | awk '{print $1}')
+   if [ $count -gt 0 ]
+   then
+      for ((i = 1 ; i <= $count ; i++))
+      do
+         u=$(awk -v "x=$i" 'NR==x' mounts)
+         umount $u
+      done
+   fi
+   rm mounts
+   partition_RPi4
+
+   printf "\n${CYAN}Formatting storage device $devicename...${NC}\n"
+   printf "\n${CYAN}If \"/dev/sdx contains a ext4 file system Labelled XXXX\" or similar appears, Enter: y${NC}\n\n\n"
+
+   if [[ ${devicename:5:6} = "mmcblk" ]]
+   then
+      devicename=$devicename"p"
+   fi
+
+   partname1=$devicename"1"
+   mkfs.fat $partname1
+   partname2=$devicename"2"
+   mkfs.ext4 $partname2
+
+} # end of function partition_format
+
+function copy_os_to_usb() {
+    mkdir rpi4-copy
+    cd rpi4-copy
+    mkdir usb-boot usb-root
+    mount $partname1 usb-boot
+    mount $partname2 usb-root
+    rsync --info=progress2  -axHAX  /boot/  usb-boot/
+    rsync --info=progress2  -axHAX  /  usb-root/
+    sync
+    blkname1=$(echo $partname1 | cut -c 6-)
+    blkname2=$(echo $partname2 | cut -c 6-)
+    part1uuid=$(lsblk -o NAME,UUID | grep $blkname1 | awk '{print $2}')
+    part2uuid=$(lsblk -o NAME,UUID | grep $blkname2 | awk '{print $2}')
+    sed -i "s/\/dev\/mmcblk0p1/UUID=$part1uuid/" "usb-root/etc/fstab"
+    sed -i "s/root=\/dev\/mmcblk0p2/root=UUID=$part2uuid/" "usb-boot/cmdline.txt"
+    rm -rf usb-root/root/rpi4-copy
+    rm usb-root/root/RPi4-test-kernel-2
+    umount usb-boot usb-root
+    cd ..
+    rm -rf rpi4-copy
+}  # End of function copy_os_to_usb
+
+######################   Start of Script   #################################
+
+# Declare color variables
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+if [ $(id -u) -ne 0 ]
+then
+   printf "\n\n${RED}PLEASE RUN THIS SCRIPT AS ROOT OR WITH SUDO${NC}\n\n"
+   exit
+fi
+
+
+printf "\n${CYAN}Checking Internet Connection...${NC}\n\n"
+ping -c 3 endeavouros.com -W 5
+if [ "$?" != "0" ]
+then
+   printf "\n\n${RED}No Internet Connection was detected\nFix your Internet Connectin and try again${NC}\n\n"
+   exit
+fi
+
+dmesg -n 1 # prevent low level kernel messages from appearing during the script
+
+Printf "\n\n${CYAN}Modifying mirrorlist to http://il.us.mirror.archlinuxarm AND http://nj.us.mirror.archlinuxarm${NC}\n\n"
+
+sed -i 's/Server = http:\/\/mirror.archlinuxarm.org/# Server = http:\/\/mirror.archlinuxarm.org/g' /etc/pacman.d/mirrorlist
+sed -i 's/# Server = http:\/\/il.us.mirror.archlinuxarm.org/Server = http:\/\/il.us.mirror.archlinuxarm.org/g' /etc/pacman.d/mirrorlist
+sed -i 's/# Server = http:\/\/nj.us.mirror.archlinuxarm.org/Server = http:\/\/nj.us.mirror.archlinuxarm.org/g' /etc/pacman.d/mirrorlist
+
+printf "\n\n${CYAN}Initiate keys and enable ParallelDownloads and to enable graysky's testing repo${NC}\n\n"
+
+pacman-key --init
+pacman-key --populate archlinuxarm
+sed -i 's/#ParallelDownloads = 5/ParallelDownloads= 8 /' /etc/pacman.conf
+sed -i '/# after the header/a \\n[graysky]\nServer = http:\/\/repo-ck.com/aarch64-test\/' /etc/pacman.conf
+pacman-key -r 5EE46C4C --keyserver hkp://keys.gnupg.net
+pacman-key --lsign-key 5EE46C4C
+
+printf "\n\n${CYAN}Remove the linux-aarch64 kernel and install and configure the linux-rpi kernel${NC}\n\n"
+
+pacman -Syy
+pacman -Rns --noconfirm linux-aarch64 uboot-raspberrypi
+pacman -Syu --noconfirm linux-rpi raspberrypi-bootloader-x raspberrypi-firmware git libnewt wget rsync parted dosfstools
+git clone https://github.com/endeavouros-arm/install-script.git
+printf "\n\n${CYAN}Modify /boot/config.txt for screen resolution and disable overscan${NC}\n\n"
+
+sed -i '/initramfs initramfs-linux.img/a hdmi_group=1\nhdmi_mode=4\ndisable_overscan=1' /boot/config.txt
+
+USB=$(whiptail --title "Install OS to a USB SSD Device" --menu --notags "\n" 9 80 2 \
+         "0" "NO " \
+         "1" "YES" \
+       3>&2 2>&1 1>&3)
+
+if [ "$USB" == "1" ]
+then
+   partition_format
+   copy_os_to_usb
+   printf "\n\n${CYAN}The linux-aarch64 kernel has been updated to the latest linux=rpi kernel./nThe OS has also been copied to a USB SSD device.\nYou are now ready to install a Desktop Environment or Windows Manager.\n\nPress Return to poweroff the RPi 4 device.\nTo boot into the USB SSD device, remove the micro SD card and boot from the USB SSD.${NC}\n\n"
+   read -n 1 z
+   rm RPi4-test-kernel-2
+   systemctl poweroff
+else
+    printf "\n\n${CYAN}The linux-aarch64 kernel has been updated to the latest linux-rpi kernel.\nYou are now ready to install a Desktop Environment or Windows Manager on your micro SD card.\n\nPress Return to reboot.${NC}\n"
+    read -n 1 z
+    rm RPi4-test-kernel-2
+    systemctl reboot
+fi
