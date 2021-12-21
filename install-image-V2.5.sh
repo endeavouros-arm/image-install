@@ -54,7 +54,7 @@ function install_OdroidN2_image() {
 
 function install_RPi4_image() {
    case $devicemodel in
-      RPi4b)  # wget http://os.archlinuxarm.org/os/ArchLinuxARM-rpi-aarch64-latest.tar.gz
+      RPi4b)  wget http://os.archlinuxarm.org/os/ArchLinuxARM-rpi-aarch64-latest.tar.gz
               printf "\n\n${CYAN}Untarring the image...may take a few minutes.${NC}\n"
               bsdtar -xpf ArchLinuxARM-rpi-aarch64-latest.tar.gz -C MP2
               cp RPi4-test-kernel-2 MP2/root ;;         
@@ -267,7 +267,7 @@ case $devicemodel in
                               rm -rf MP1 ;;
 esac
 
-# rm ArchLinuxARM*
+rm ArchLinuxARM*
 
 printf "\n\n${CYAN}End of script!${NC}\n"
 printf "\n${CYAN}Be sure to use a file manager to umount the device before removing the USB SD reader${NC}\n"
