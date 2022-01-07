@@ -56,8 +56,7 @@ function install_RPi4_image() {
    case $devicemodel in
       RPi4b)  wget http://os.archlinuxarm.org/os/ArchLinuxARM-rpi-aarch64-latest.tar.gz
               printf "\n\n${CYAN}Untarring the image...may take a few minutes.${NC}\n"
-              bsdtar -xpf ArchLinuxARM-rpi-aarch64-latest.tar.gz -C MP2
-              cp RPi4-test-kernel-2 MP2/root ;;         
+              bsdtar -xpf ArchLinuxARM-rpi-aarch64-latest.tar.gz -C MP2 ;;
       RPi400) wget http://os.archlinuxarm.org/os/ArchLinuxARM-rpi-armv7-latest.tar.gz
               printf "\n\n${CYAN}Untarring the image...may take a few minutes.${NC}\n"
               bsdtar -xpf ArchLinuxARM-rpi-armv7-latest.tar.gz -C MP2 ;;
@@ -65,6 +64,7 @@ function install_RPi4_image() {
    printf "\n\n${CYAN}syncing files...may take a few minutes.${NC}\n"
    sync
    mv MP2/boot/* MP1
+   cp RPi4-test-kernel-2 MP2/root
    if [ $devicemodel == "RPi4b" ] 
    then
       sed -i 's/mmcblk0/mmcblk1/g' MP2/etc/fstab
