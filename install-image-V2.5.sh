@@ -64,7 +64,7 @@ function install_RPi4_image() {
    printf "\n\n${CYAN}syncing files...may take a few minutes.${NC}\n"
    sync
    mv MP2/boot/* MP1
-   cp RPi4-test-kernel-2 MP2/root
+
    if [ $devicemodel == "RPi4b" ] 
    then
       sed -i 's/mmcblk0/mmcblk1/g' MP2/etc/fstab
@@ -258,6 +258,7 @@ case $devicemodel in
 esac
 
 rm MP2/etc/motd
+cp RPi4-test-kernel-2 MP2/root
 
 printf "\n\n${CYAN}Almost done! Just a couple of minutes more for the last step.${NC}\n\n"
 case $devicemodel in
