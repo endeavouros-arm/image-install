@@ -237,7 +237,7 @@ devicemodel=$(dmesg | grep "Machine model" | sed -e '/Raspberry Pi/ c Raspberry 
 
 architecture="$(uname -m)"
 
-if [ "$architecture" == "aarch64" ] && [ "$devicename" == "Raspberry Pi" ]
+if [ "$architecture" == "aarch64" ] && [ "$devicemodel" == "Raspberry Pi" ]
 then
    SWITCH=$(whiptail  --title "EndeavourOS ARM Setup - Switch kernels"  --menu --notags "\n     There are now two 64 Bit kernels available.\n     linux-aarch64 kernel is installed by default from the image.\n     linux-rpi kernel is available from Raspberry Pi Foundation.\n     It allows installation to USB SSD if RPi4 EEPROM is up to date.\n\n" 16 80 2 \
         "no" "Keep the original kernel and only run on a micro SD card" \
