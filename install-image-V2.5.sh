@@ -1,5 +1,4 @@
-
-#! /bin/bash
+#!/usr/bin/env bash
 
 function partition_OdroidN2() {
    parted --script -a minimal $devicename \
