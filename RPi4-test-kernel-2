@@ -245,10 +245,6 @@ then
         3>&2 2>&1 1>&3)
    if [ "$SWITCH" == "yes" ]
    then
-      printf "\n\n${CYAN}Enable graysky's testing repo${NC}\n\n"
-      sed -i '/# after the header/a \\n[graysky]\nServer = http:\/\/repo-ck.com/aarch64-test\/' /etc/pacman.conf
-      pacman-key -r 5EE46C4C --keyserver hkp://keys.gnupg.net
-      pacman-key --lsign-key 5EE46C4C
       printf "\n\n${CYAN}Remove the linux-aarch64 kernel and install and configure the linux-rpi kernel${NC}\n\n"
       pacman -Syy
       pacman -Rns --noconfirm linux-aarch64 uboot-raspberrypi
