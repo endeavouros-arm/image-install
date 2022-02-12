@@ -247,8 +247,8 @@ then
    then
       printf "\n\n${CYAN}Remove the linux-aarch64 kernel and install and configure the linux-rpi kernel${NC}\n\n"
       pacman -Syy
-      pacman -Rns --noconfirm linux-aarch64 uboot-raspberrypi
-      pacman -Syu --noconfirm linux-rpi raspberrypi-bootloader-x raspberrypi-firmware git wget rsync parted dosfstools
+      pacman -R --noconfirm linux-aarch64 uboot-raspberrypi
+      pacman -Syu --noconfirm linux-rpi raspberrypi-bootloader raspberrypi-firmware git wget rsync parted dosfstools
       git clone https://github.com/endeavouros-arm/install-script.git
       USB=$(whiptail --title "Install OS to a USB SSD Device" --menu --notags "\n" 9 80 2 \
             "0" "NO " \
