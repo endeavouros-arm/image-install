@@ -54,12 +54,12 @@ function edit_mirrorlist() {
           case $str in
              "# Server") changes=$((changes+1))
                          old=${mirror1::-12}
-                         new=${old/[#]/ }
+                         new=${old/["#"]/" "}
                          sed -i "s|$old|$new|g" /etc/pacman.d/mirrorlist ;;
 
              "  Server") changes=$((changes+1))
                          old=${mirror1::-12}
-                         new=${old/[  S]/# S}
+                         new=${old/[" "]/"#"}
                          sed -i "s|$old|$new|g" /etc/pacman.d/mirrorlist ;;
 
                       *) whiptail  --title "EndeavourOS ARM Setup - ERROR"  --msgbox "     You have selected an item that cannot be edited. Please try again.\n     Only select lines that start with \"# Server\" or \"  Server\"\n     Other items are invalid.\n\n" 10 80 3>&2 2>&1 1>&3
