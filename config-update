@@ -1,0 +1,331 @@
+#!/bin/bash
+
+_check_if_root() {
+    if [ $(id -u) -ne 0 ]
+    then
+      printf "\n\n${RED}PLEASE RUN THIS SCRIPT AS ROOT OR WITH SUDO${NC}\n\n"
+      exit
+    fi
+}   # end of function _check_if_root
+
+_check_internet_connection() {
+    printf "\n${CYAN}Checking Internet Connection...${NC}\n\n"
+    ping -c 3 endeavouros.com -W 5
+    if [ "$?" != "0" ]
+    then
+       printf "\n\n${RED}No Internet Connection was detected\nFix your Internet Connectin and try again${NC}\n\n"
+       exit
+    fi
+}   # end of function _check_internet_connection
+
+_edit_mirrorlist() {
+    local user_confirmation
+    local changes
+    local mirrors
+    local mirror1
+    local old
+    local new
+    local file
+    local str
+
+    whiptail  --title "EndeavourOS ARM Setup - mirrorlist"  --yesno "     Mirrorlist uses a Geo-IP based mirror selection and load balancing.\n     Do you wish to override this and choose mirrors near you?\n\n" 8 80 3>&2 2>&1 1>&3
+    user_confirmation=$?
+    changes=0
+    while [ "$user_confirmation" == "0" ]
+    do
+        tail -n +11 /etc/pacman.d/mirrorlist | grep -e ^"###" -e ^"# S" -e^"  S"  > tmp-mirrorlist
+        readarray -t mirrors < tmp-mirrorlist
+
+        mirror1=$(whiptail --cancel-button 'Done' --notags --title "EndeavourOS ARM Setup - Mirror Selection" --menu  \ "Please choose a mirror to enable.\n Only choose lines starting with: \"# Server\" or \"  Server\"\n The chosen item will be toggled between commented and uncommented.\n Note: You can navigate to different sections with Page Up/Down keys.\n When finished selecting, press right arrow key twice" 30 80 18 \
+           "${mirrors[0]}" "${mirrors[0]}" \
+           "${mirrors[1]}" "${mirrors[1]}" \
+           "${mirrors[2]}" "${mirrors[2]}" \
+           "${mirrors[3]}" "${mirrors[3]}" \
+           "${mirrors[4]}" "${mirrors[4]}" \
+           "${mirrors[5]}" "${mirrors[5]}" \
+           "${mirrors[6]}" "${mirrors[6]}" \
+           "${mirrors[7]}" "${mirrors[7]}" \
+           "${mirrors[8]}" "${mirrors[8]}" \
+           "${mirrors[9]}" "${mirrors[9]}" \
+           "${mirrors[10]}" "${mirrors[10]}" \
+           "${mirrors[11]}" "${mirrors[11]}" \
+           "${mirrors[12]}" "${mirrors[12]}" \
+           "${mirrors[13]}" "${mirrors[13]}" \
+           "${mirrors[14]}" "${mirrors[14]}" \
+           "${mirrors[15]}" "${mirrors[15]}" \
+           "${mirrors[16]}" "${mirrors[16]}" \
+           "${mirrors[17]}" "${mirrors[17]}" \
+           "${mirrors[18]}" "${mirrors[18]}" \
+           "${mirrors[19]}" "${mirrors[19]}" \
+           "${mirrors[20]}" "${mirrors[20]}" \
+           "${mirrors[21]}" "${mirrors[21]}" \
+           "${mirrors[22]}" "${mirrors[22]}" \
+           "${mirrors[23]}" "${mirrors[23]}" \
+           "${mirrors[24]}" "${mirrors[24]}" \
+           "${mirrors[25]}" "${mirrors[25]}" \
+           "${mirrors[26]}" "${mirrors[26]}" \
+           "${mirrors[27]}" "${mirrors[27]}" \
+           "${mirrors[28]}" "${mirrors[28]}" \
+           "${mirrors[29]}" "${mirrors[29]}" \
+           "${mirrors[30]}" "${mirrors[30]}" \
+           "${mirrors[31]}" "${mirrors[31]}" \
+           "${mirrors[32]}" "${mirrors[32]}" \
+           "${mirrors[33]}" "${mirrors[33]}" \
+           "${mirrors[34]}" "${mirrors[34]}" \
+           "${mirrors[35]}" "${mirrors[35]}" \
+        3>&2 2>&1 1>&3)
+        user_confirmation=$?
+        if [ "$user_confirmation" == "0" ]; then
+           str=${mirror1:0:8}
+           case $str in
+              "# Server") changes=$((changes+1))
+                          old=${mirror1::-12}
+                          new=${old/["#"]/" "}
+                          sed -i "s|$old|$new|g" /etc/pacman.d/mirrorlist ;;
+              "  Server") changes=$((changes+1))
+                          old=${mirror1::-12}
+                          new=${old/[" "]/"#"}
+                          sed -i "s|$old|$new|g" /etc/pacman.d/mirrorlist ;;
+                       *) whiptail  --title "EndeavourOS ARM Setup - ERROR"  --msgbox "     You have selected an item that cannot be edited. Please try again.\n     Only select lines that start with \"# Server\" or \"  Server\"\n     Other items are invalid.\n\n" 10 80 3>&2 2>&1 1>&3
+           esac
+        fi
+    done
+
+    if [ $changes -gt 0 ]; then
+       sed -i 's|Server = http://mirror.archlinuxarm.org|# Server = http://mirror.archlinuxarm.org|' /etc/pacman.d/mirrorlist
+    fi
+    file="tmp-mirrorlist"
+    if [ -f "$file" ]; then
+       rm tmp-mirrorlist
+    fi
+}   # end of function _edit_mirrorlist
+
+
+_enable_paralleldownloads() {
+    local user_confirmation
+    local numdwn
+    local new
+
+    whiptail  --title "EndeavourOS ARM Setup - Parallel Downloads"  --yesno "             By default, pacman has Parallel Downloads disabled.\n             Do you wish to enable Parallel Downloads?\n\n" 8 80 15 3>&2 2>&1 1>&3
+
+    user_confirmation=$?
+    if [ "$user_confirmation" == "0" ]; then
+       numdwn=$(whiptail --title "EndeavourOS ARM Setup - Parallel Downloads" --menu --notags "           When enabled, Pacman has 5 Parallel Downloads as a default.\n           How many Parallel Downloads do you wish? \n\n" 20 80 10 \
+         "2" " 2 Parallel Downloads" \
+         "3" " 3 Parallel Downloads" \
+         "4" " 4 Parallel Downloads" \
+         "5" " 5 Parallel Downloads" \
+         "6" " 6 Parallel Downloads" \
+         "7" " 7 Parallel Downloads" \
+         "8" " 8 Parallel Downloads" \
+         "9" " 9 Parallel Downloads" \
+         "10" "10 Parallel Downloads" \
+       3>&2 2>&1 1>&3)
+    fi
+
+    if [[ $numdwn -gt 1 ]]; then
+       new="ParallelDownloads = $numdwn"
+       sed -i "s|#ParallelDownloads = 5|$new|g" /etc/pacman.conf
+    fi
+}   # end of function _enable_paralleldownloads
+
+_switch_kernels() {
+    printf "\n\n${CYAN}Remove the linux-aarch64 kernel and install and configure the linux-rpi kernel${NC}\n\n"
+    pacman -Syy
+    pacman -R --noconfirm linux-aarch64 uboot-raspberrypi
+    pacman -Syu --noconfirm linux-rpi raspberrypi-bootloader raspberrypi-firmware git wget rsync parted dosfstools
+    git clone https://github.com/endeavouros-arm/install-script.git
+}   # end of function _switch_kernels
+
+_partition_RPi4() {
+    parted --script -a minimal $DEVICENAME \
+    mklabel gpt \
+    unit MiB \
+    mkpart primary fat32 2MiB 202MiB \
+    mkpart primary ext4 202MiB $DEVICESIZE"MiB" \
+    quit
+}   # end of function _partition_RPi4
+
+_partition_format() {
+    local exit_status
+    local finished
+    local devicename_type
+    local base_dialog_content
+    local dialog_content
+    local count
+    local x
+    local i
+
+    # user entry of storage device name to format
+    finished=1
+    base_dialog_content="\nThe following storage devices were found\n\n$(lsblk -o NAME,MODEL,FSTYPE,SIZE,FSUSED,FSAVAIL,MOUNTPOINT)\n\n \
+    Enter target device name without a partition designation (e.g. /dev/sda or /dev/mmcblk0):"
+    dialog_content="$base_dialog_content"
+    while [ $finished -ne 0 ]
+    do
+        DEVICENAME=$(whiptail --title "EndeavourOS ARM Setup - micro SD Configuration" --inputbox "$dialog_content" 27 115 3>&2 2>&1 1>&3)
+       exit_status=$?
+       if [ $exit_status == "1" ]; then
+          printf "\nScript aborted by user\n\n"
+          exit
+       fi
+       if [[ ! -b "$DEVICENAME" ]]; then
+          dialog_content="$base_dialog_content\n    Not a listed block device, or not prefaced by /dev/ Try again."
+       else
+          case $DEVICENAME in
+             /dev/sd*)     if [[ ${#DEVICENAME} -eq 8 ]]; then
+                              finished=0
+                           else
+                              dialog_content="$base_dialog_content\n    Input improperly formatted. Try again."
+                           fi ;;
+             /dev/mmcblk*) if [[ ${#DEVICENAME} -eq 12 ]]; then
+                              finished=0
+                           else
+                              dialog_content="$base_dialog_content\n    Input improperly formatted. Try  again."
+                           fi ;;
+          esac
+       fi
+    done
+    ##### Determine storage device size in MiB and partition
+    printf "\n${CYAN}Partitioning, & formatting storage device...${NC}\n"
+    DEVICESIZE=$(fdisk -l | grep "Disk $DEVICENAME" | awk '{print $5}')
+    ((DEVICESIZE=$DEVICESIZE/1048576))
+    ((DEVICESIZE=$DEVICESIZE-1))  # for some reason, necessary for USB thumb drives
+    printf "\n${CYAN}Partitioning storage device $DEVICENAME...${NC}\n"
+    # umount partitions before partitioning and formatting
+    lsblk $DEVICENAME -o MOUNTPOINT | grep /run/media > mounts
+    count=$(wc -l mounts | awk '{print $1}')
+    if [ $count -gt 0 ]
+    then
+       for ((i = 1 ; i <= $count ; i++))
+       do
+          u=$(awk -v "x=$i" 'NR==x' mounts)
+          umount $u
+       done
+    fi
+    rm mounts
+    _partition_RPi4
+    printf "\n${CYAN}Formatting storage device $DEVICENAME...${NC}\n"
+    printf "\n${CYAN}If \"/dev/sdx contains a ext4 file system Labelled XXXX\" or similar appears, Enter: y${NC}\n\n\n"
+    if [[ ${DEVICENAME:5:6} = "mmcblk" ]]
+    then
+       devicename_type=$DEVICENAME"p"
+    else
+       devicename_type=$DEVICENAME
+    fi
+    PARTNAME1=$devicename_type"1"
+    mkfs.fat $PARTNAME1
+    PARTNAME2=$devicename_type"2"
+    mkfs.ext4 $PARTNAME2
+}   # end of function _partition_format
+
+_copy_os_to_usb() {
+    local blkname1
+    local blkname2
+    local part1uuid
+    local part2uuid
+
+    mkdir rpi4-copy
+    cd rpi4-copy
+    mkdir usb-boot usb-root
+    mount $PARTNAME1 usb-boot
+    mount $PARTNAME2 usb-root
+    rsync --info=progress2  -axHAX  /boot/  usb-boot/
+    rsync --info=progress2  -axHAX  /  usb-root/
+    sync
+    blkname1=$(echo $PARTNAME1 | cut -c 6-)
+    blkname2=$(echo $PARTNAME2 | cut -c 6-)
+    part1uuid=$(lsblk -o NAME,UUID | grep $blkname1 | awk '{print $2}')
+    part2uuid=$(lsblk -o NAME,UUID | grep $blkname2 | awk '{print $2}')
+    sed -i "s/\/dev\/mmcblk0p1/UUID=$part1uuid/" "usb-root/etc/fstab"
+    sed -i "s/root=\/dev\/mmcblk0p2/root=UUID=$part2uuid/" "usb-boot/cmdline.txt"
+    rm -rf usb-root/root/rpi4-copy
+    rm usb-root/root/config-update
+    umount usb-boot usb-root
+    cd ..
+    rm -rf rpi4-copy
+}   # End of function _copy_os_to_usb
+
+_finish_up_64kernel_switch_usb() {
+    printf "\n\n${CYAN}The linux-aarch64 kernel has been updated to the latest linux=rpi kernel./nThe OS has also been copied to a USB SSD device.\nYou are now ready to install a Desktop Environment or Windows Manager.\n\nPress Return to poweroff the RPi 4 device.\nTo boot into the USB SSD device, remove the micro SD card and boot from the USB SSD.${NC}\n\n"
+    read -n 1 z
+    rm config-update
+    systemctl poweroff
+}   # end of function _finish_up_64kernel_switch_usb
+
+_finish_up_64kernel_switch() {
+    printf "\n\n${CYAN}The linux-aarch64 kernel has been updated to the latest linux-rpi kernel.\nYou are now ready to install a Desktop Environment or Windows Manager on your micro SD card.\n\nPress Return to reboot.${NC}\n"
+    read -n 1 z
+    rm config-update
+    systemctl reboot
+}   # end of function _finish_up_64kernel_switch
+
+_finish_up() {
+    pacman -Syu --noconfirm --needed git wget
+    rm config-update
+    git clone https://github.com/endeavouros-arm/install-script.git
+    printf "\n\n${CYAN}Your Device is ready for installation of a Desktop Environment or Windows Manager.\n\nPress Return to reboot.${NC}\n"
+    read -n 1 z
+    systemctl reboot
+}   # end of function _finish_up
+
+
+_rpi4_64_bit() {
+    local switch
+    local usb
+
+    switch=$(whiptail  --title "EndeavourOS ARM Setup - Switch kernels"  --menu --notags "\n     There are now two 64 Bit kernels available.\n     linux-aarch64 kernel is installed by default from the image.\n     linux-rpi kernel is available from Raspberry Pi Foundation.\n     It allows installation to USB SSD if RPi4 EEPROM is up to date.\n\n" 16 80 2 \
+           "no" "Keep the original kernel and only run on a micro SD card" \
+           "yes" "Switch kernels and run on a micro SD card OR a USB SSD" \
+    3>&2 2>&1 1>&3)
+    case $switch in
+        no) _finish_up ;;
+       yes) _switch_kernels ;;
+    esac
+    usb=$(whiptail --title "Install OS to a USB SSD Device" --menu --notags "\n" 9 80 2 \
+       "0" "NO " \
+       "1" "YES" \
+    3>&2 2>&1 1>&3)
+    case $usb in
+       0) _finish_up_64kernel_switch ;;
+       1) _partition_format
+          _copy_os_to_usb
+          _finish_up_64kernel_switch_usb ;;
+    esac
+}   # end of fucntion _rpi4_64_bit
+
+######################   Start of Script   #################################
+Main() {
+   # VARIABLES
+      DEVICEMODEL=$(dmesg | grep "Machine model" | sed -e '/Raspberry Pi/ c Raspberry Pi' -e '/ODROID-N2/ c ODROID-N2' -e '/Odroid XU4/ c Odroid XU4')
+      ARCHITECTURE="$(uname -m)"
+      DEVICENAME=" "
+      DEVICESIZE=1
+      PARTNAME1=" "
+      PARTNAME2=" "
+
+   # Declare color variables
+      GREEN='\033[0;32m'
+      RED='\033[0;31m'
+      CYAN='\033[0;36m'
+      NC='\033[0m' # No Color
+
+   # STARTS HERE
+   dmesg -n 1 # prevent low level kernel messages from appearing during the script
+   _check_if_root
+   _check_internet_connection
+   pacman-key --init
+   pacman-key --populate archlinuxarm
+   pacman -Syy
+   pacman -S --noconfirm --needed libnewt   # libnewt necessary for whiptail
+   _edit_mirrorlist
+   _enable_paralleldownloads
+   if [ "$ARCHITECTURE" == "aarch64" ] && [ "$DEVICEMODEL" == "Raspberry Pi" ]
+   then
+      _rpi4_64_bit
+   else
+      _finish_up
+   fi
+}  # end of Main
+
+Main "$@"
