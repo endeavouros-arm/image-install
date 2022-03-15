@@ -56,6 +56,9 @@ _install_OdroidN2_image() {
 
 _install_RPi4_image() {
     local user_confirm
+    local uuidno
+    local old
+    local new
 
     case $PLATFORM in
        RPi64) wget http://os.archlinuxarm.org/os/ArchLinuxARM-rpi-aarch64-latest.tar.gz
@@ -90,6 +93,19 @@ _install_RPi4_image() {
        esac
     fi
     cp config-update MP2/root
+    # change /etc/fstab to use UUID instead of disk label
+    uuidno=$(lsblk -o UUID $PARTNAME1)
+    uuidno=$(echo $uuidno | sed 's/ /=/g')
+    printf "# /etc/fstab: static file system information.\n#\n# Use 'blkid' to print the universally unique identifier for a device; this may\n" >> MP2/etc/fstab
+    printf "# be used with UUID= as a more robust way to name devices that works even if\n# disks are added and removed. See fstab(5).\n" >> MP2/etc/fstab
+    printf "#\n# <file system>             <mount point>  <type>  <options>  <dump>  <pass>\n\n"  >> MP2/etc/fstab
+    printf "$uuidno  /boot  vfat  defaults  0  0\n" >> MP2/etc/fstab
+    # make /boot/cmdline.txt work with a UUID instead of a lable such as /dev/sda
+    uuidno=$(lsblk -o UUID $PARTNAME2)
+    uuidno=$(echo $uuidno | sed 's/ /=/g')
+    old=$(awk '{print $1}' MP1/cmdline.txt)
+    new="root="$uuidno
+    sed -i "s#$old#$new#" MP1/cmdline.tx
 }  # End of function _install_RPi4_image
 
 _install_OdroidXU4_image() {
