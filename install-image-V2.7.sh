@@ -56,9 +56,6 @@ _install_OdroidN2_image() {
 
 _install_RPi4_image() {
     local user_confirm
-    local uuidno
-    local old
-    local new
 
     case $PLATFORM in
        RPi64) wget http://os.archlinuxarm.org/os/ArchLinuxARM-rpi-aarch64-latest.tar.gz
