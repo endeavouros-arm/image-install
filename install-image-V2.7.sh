@@ -56,11 +56,28 @@ _install_OdroidN2_image() {
 
 _install_RPi4_image() {
     local user_confirm
+    local uuidno
+    local old
+    local new
+    local url
+    local totalurl
+    local exit_status
 
     case $PLATFORM in
-       RPi64) wget http://os.archlinuxarm.org/os/ArchLinuxARM-rpi-aarch64-latest.tar.gz
+       RPi64) url=$(curl https://github.com/pudges-place/images/releases | grep "enos-image-.*/enosLinuxARM-rpi-aarch64-latest.tar.gz" | sed s'#^.*pudges-place#pudges-place#'g | sed s'#latest.tar.gz.*#latest.tar.gz#'g | tail -1)
+              totalurl="https://github.com/"$url
+              wget $totalurl
+              exit_status=$?
+              if [ "$exit_status" != "0" ]; then
+                  wget https://pudges-place.ddns.net/EndeavourOS/enosLinuxARM-rpi-aarch64-latest.tar.gz
+                  exit_status=$?
+                  if [ "$exit_status" != "0" ]; then
+                      printf "\n\nCannot download the EnOS ARM 64 bit image. Check internet connections\n\n"
+                      exit
+                  fi
+              fi
               printf "\n\n${CYAN}Untarring the image...may take a few minutes.${NC}\n"
-              bsdtar -xpf ArchLinuxARM-rpi-aarch64-latest.tar.gz -C MP2 ;;
+              bsdtar -xpf enosLinuxARM-rpi-aarch64-latest.tar.gz -C MP2 ;;
        RPi32) wget http://os.archlinuxarm.org/os/ArchLinuxARM-rpi-armv7-latest.tar.gz
               printf "\n\n${CYAN}Untarring the image...may take a few minutes.${NC}\n"
               bsdtar -xpf ArchLinuxARM-rpi-armv7-latest.tar.gz -C MP2 ;;
@@ -68,27 +85,21 @@ _install_RPi4_image() {
     printf "\n\n${CYAN}syncing files...may take a few minutes.${NC}\n"
     sync
     mv MP2/boot/* MP1
-
-    if [ $PLATFORM == "RPi64" ]
-    then
-       sed -i 's/mmcblk0/mmcblk1/g' MP2/etc/fstab
-    fi
-   
-    if [ $PLATFORM == "RPi32" ]
-    then
-       user_confirm=$(whiptail --title " Storage Device Selection" --menu --notags "\n             Choose Storage Device or Press right arrow twice to abort" 17 100 2 \
-         "0" "micro SD card" \
-         "1" "External USB SSD enclosure" \
-       3>&2 2>&1 1>&3)
-
-       case $user_confirm in
-           "") printf "\n\nScript aborted by user..${NC}\n\n"
-               exit ;;
-            1) sed -i 's/root=\/dev\/mmcblk0p2/root=\/dev\/sda2/g' MP1/cmdline.txt
-               sed -i 's/mmcblk0p1/sda1/g' MP2/etc/fstab
-               whiptail --title "Storage Device Selection" --msgbox "                          Using an external USB SSD\n\nWhen an update involves the config file /boot/cmdline.txt and it results\nin a /boot/cmdline.txt.pacnew file being created, action must be taken.\n\nUse 'Pacdiff & meld' in the welcome window.  When it asks what to do with /boot/cmdline.txt.pacnew enter o to overwrite. Now the device will not boot.\n\nTo fix it edit /boot/cmdline.txt and change the first part of the line from\n/dev/mmcblk0p2 \nto\n/dev/sda2" 19 80 ;;
-       esac
-    fi
+    # make /etc/fstab work with a UUID instead of a lable such as /dev/sda
+    printf "\n${CYAN}In /etc/fstab and /boot/cmdline.txt changing Disk labels to UUID numbers.${NC}\n"
+    mv MP2/etc/fstab MP2/etc/fstab-bkup
+    uuidno=$(lsblk -o UUID $PARTNAME1)
+    uuidno=$(echo $uuidno | sed 's/ /=/g')
+    printf "# /etc/fstab: static file system information.\n#\n# Use 'blkid' to print the universally unique identifier for a device; this may\n" >> MP2/etc/fstab
+    printf "# be used with UUID= as a more robust way to name devices that works even if\n# disks are added and removed. See fstab(5).\n" >> MP2/etc/fstab
+    printf "#\n# <file system>             <mount point>  <type>  <options>  <dump>  <pass>\n\n"  >> MP2/etc/fstab
+    printf "$uuidno  /boot  vfat  defaults  0  0\n" >> MP2/etc/fstab
+    # make /boot/cmdline.txt work with a UUID instead of a lable such as /dev/sda
+    uuidno=$(lsblk -o UUID $PARTNAME2)
+    uuidno=$(echo $uuidno | sed 's/ /=/g')
+    old=$(awk '{print $1}' MP1/cmdline.txt)
+    new="root="$uuidno
+    sed -i "s#$old#$new#" MP1/cmdline.txt
     cp config-update MP2/root
 }  # End of function _install_RPi4_image
 
@@ -112,8 +123,6 @@ _partition_format_mount() {
    local i
    local u
    local x
-   local partname1
-   local partname2
 
    base_dialog_content="\nThe following storage devices were found\n\n$(lsblk -o NAME,MODEL,FSTYPE,SIZE,FSUSED,FSAVAIL,MOUNTPOINT)\n\n \
    Enter target device name without a partition designation (e.g. /dev/sda or /dev/mmcblk0):"
@@ -178,17 +187,17 @@ _partition_format_mount() {
    fi
    
    case $PLATFORM in
-      OdroidN2 | RPi64 | RPi32) partname1=$DEVICENAME"1"
-                                mkfs.fat $partname1   2>> /root/enosARM.log
-                                partname2=$DEVICENAME"2"
-                                mkfs.ext4 $partname2   2>> /root/enosARM.log
+      OdroidN2 | RPi64 | RPi32) PARTNAME1=$DEVICENAME"1"
+                                mkfs.fat $PARTNAME1   2>> /root/enosARM.log
+                                PARTNAME2=$DEVICENAME"2"
+                                mkfs.ext4 $PARTNAME2   2>> /root/enosARM.log
                                 mkdir MP1 MP2
-                                mount $partname1 MP1
-                                mount $partname2 MP2 ;;
-      OdroidXU4)                partname1=$DEVICENAME"1"
-                                mkfs.ext4 $partname1  2>> /root/enosARM.log
+                                mount $PARTNAME1 MP1
+                                mount $PARTNAME2 MP2 ;;
+      OdroidXU4)                PARTNAME1=$DEVICENAME"1"
+                                mkfs.ext4 $PARTNAME1  2>> /root/enosARM.log
                                 mkdir MP1
-                                mount $partname1 MP1 ;;
+                                mount $PARTNAME1 MP1 ;;
    esac
 } # end of function _partition_format_mount
 
@@ -239,6 +248,8 @@ Main() {
     PLATFORM=" "     # e.g. OdroidN2, RPi4b, etc.
     DEVICENAME=" "   # storage device name e.g. /dev/sda
     DEVICESIZE="1"
+    PARTNAME1=" "
+    PARTNAME2=" "
 
     # Declare color variables
     GREEN='\033[0;32m'
@@ -265,7 +276,7 @@ Main() {
                                  rm -rf MP1 ;;
     esac
 
-    rm ArchLinuxARM*
+#    rm ArchLinuxARM*
 
     printf "\n\n${CYAN}End of script!${NC}\n"
     printf "\n${CYAN}Be sure to use a file manager to umount the device before removing the USB SD reader${NC}\n"
