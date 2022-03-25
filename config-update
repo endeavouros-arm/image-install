@@ -130,7 +130,7 @@ _enable_paralleldownloads() {
 }   # end of function _enable_paralleldownloads
 
 _finish_up() {
-    printf "\n\n${CYAN}Near the end of the script, the last hook will display:\n\n${NC}Warn about old perl modules${CYAN}\n\nAt this point there might be a long delay\nThat is OK, please be patient.${NC}\n\n"
+    printf "\n\n${CYAN}Near the end of the script, the last pacman hook will display:\n\n${NC}Warn about old perl modules${CYAN}\n\nAt this point there might be a long delay\nThat is OK, please be patient.${NC}\n\n"
     sleep 5
     pacman -Syu --noconfirm --needed git wget
     rm config-update
