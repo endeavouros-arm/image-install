@@ -55,7 +55,6 @@ _install_OdroidN2_image() {
 }   # End of function _install_OdroidN2_image
 
 _install_RPi4_image() {
-    local user_confirm
     local uuidno
     local old
     local new
@@ -63,29 +62,25 @@ _install_RPi4_image() {
     local totalurl
     local exit_status
 
-    case $PLATFORM in
-       RPi64) url=$(curl https://github.com/pudges-place/images/releases | grep "enos-image-.*/enosLinuxARM-rpi-aarch64-latest.tar.gz" | sed s'#^.*pudges-place#pudges-place#'g | sed s'#latest.tar.gz.*#latest.tar.gz#'g | tail -1)
-              totalurl="https://github.com/"$url
-              wget $totalurl
-              exit_status=$?
-              if [ "$exit_status" != "0" ]; then
-                  wget https://pudges-place.ddns.net/EndeavourOS/enosLinuxARM-rpi-aarch64-latest.tar.gz
-                  exit_status=$?
-                  if [ "$exit_status" != "0" ]; then
-                      printf "\n\nCannot download the EnOS ARM 64 bit image. Check internet connections\n\n"
-                      exit
-                  fi
-              fi
-              printf "\n\n${CYAN}Untarring the image...may take a few minutes.${NC}\n"
-              bsdtar -xpf enosLinuxARM-rpi-aarch64-latest.tar.gz -C MP2 ;;
-       RPi32) wget http://os.archlinuxarm.org/os/ArchLinuxARM-rpi-armv7-latest.tar.gz
-              printf "\n\n${CYAN}Untarring the image...may take a few minutes.${NC}\n"
-              bsdtar -xpf ArchLinuxARM-rpi-armv7-latest.tar.gz -C MP2 ;;
-    esac
+    url=$(curl https://github.com/pudges-place/images/releases | grep "enos-image-.*/enosLinuxARM-rpi-aarch64-latest.tar.gz" | sed s'#^.*pudges-place#pudges-place#'g | sed s'#latest.tar.gz.*#latest.tar.gz#'g | head -n 1)
+    totalurl="https://github.com/"$url
+    wget $totalurl
+    exit_status=$?
+    if [ "$exit_status" != "0" ]; then
+        wget https://pudges-place.ddns.net/EndeavourOS/enosLinuxARM-rpi-aarch64-latest.tar.gz
+        exit_status=$?
+        if [ "$exit_status" != "0" ]; then
+            printf "\n\nCannot download the EnOS ARM 64 bit image. Check internet connections\n\n"
+            exit
+        fi
+    fi
+    printf "\n\n${CYAN}Untarring the image...may take a few minutes.${NC}\n"
+    bsdtar -xpf enosLinuxARM-rpi-aarch64-latest.tar.gz -C MP2 ;;
+
     printf "\n\n${CYAN}syncing files...may take a few minutes.${NC}\n"
     sync
     mv MP2/boot/* MP1
-    # make /etc/fstab work with a UUID instead of a lable such as /dev/sda
+    # make /etc/fstab work with a UUID instead of a label such as /dev/sda
     printf "\n${CYAN}In /etc/fstab and /boot/cmdline.txt changing Disk labels to UUID numbers.${NC}\n"
     mv MP2/etc/fstab MP2/etc/fstab-bkup
     uuidno=$(lsblk -o UUID $PARTNAME1)
@@ -173,9 +168,9 @@ _partition_format_mount() {
    fi
    rm mounts
    case $PLATFORM in
-       OdroidN2)       _partition_OdroidN2 ;;
-       OdroidXU4)      _partition_OdroidXU4 ;;
-       RPi64 | RPi32)  _partition_RPi4 ;;
+       OdroidN2)   _partition_OdroidN2 ;;
+       OdroidXU4)  _partition_OdroidXU4 ;;
+       RPi64)      _partition_RPi4 ;;
    esac
    printf "\npartition name = $DEVICENAME\n\n" >> /root/enosARM.log
    printf "\n${CYAN}Formatting storage device $DEVICENAME...${NC}\n"
@@ -187,17 +182,17 @@ _partition_format_mount() {
    fi
    
    case $PLATFORM in
-      OdroidN2 | RPi64 | RPi32) PARTNAME1=$DEVICENAME"1"
-                                mkfs.fat $PARTNAME1   2>> /root/enosARM.log
-                                PARTNAME2=$DEVICENAME"2"
-                                mkfs.ext4 $PARTNAME2   2>> /root/enosARM.log
-                                mkdir MP1 MP2
-                                mount $PARTNAME1 MP1
-                                mount $PARTNAME2 MP2 ;;
-      OdroidXU4)                PARTNAME1=$DEVICENAME"1"
-                                mkfs.ext4 $PARTNAME1  2>> /root/enosARM.log
-                                mkdir MP1
-                                mount $PARTNAME1 MP1 ;;
+      OdroidN2 | RPi64) PARTNAME1=$DEVICENAME"1"
+                        mkfs.fat $PARTNAME1   2>> /root/enosARM.log
+                        PARTNAME2=$DEVICENAME"2"
+                        mkfs.ext4 $PARTNAME2   2>> /root/enosARM.log
+                        mkdir MP1 MP2
+                        mount $PARTNAME1 MP1
+                        mount $PARTNAME2 MP2 ;;
+      OdroidXU4)        PARTNAME1=$DEVICENAME"1"
+                        mkfs.ext4 $PARTNAME1  2>> /root/enosARM.log
+                        mkdir MP1
+                        mount $PARTNAME1 MP1 ;;
    esac
 } # end of function _partition_format_mount
 
@@ -226,7 +221,6 @@ _choose_device() {
          "0" "Odroid N2 or N2+" \
          "1" "Odroid XU4" \
          "2" "Raspberry Pi 4b 64 bit" \
-         "3" "Raspberry Pi 4b 32 bit" \
     3>&2 2>&1 1>&3)
 
     case $PLATFORM in
@@ -235,7 +229,6 @@ _choose_device() {
          0) PLATFORM="OdroidN2" ;;
          1) PLATFORM="OdroidXU4" ;;
          2) PLATFORM="RPi64" ;;
-         3) PLATFORM="RPi32" ;;
     esac
 }
 
@@ -263,17 +256,17 @@ Main() {
     _choose_device
     _partition_format_mount  # function to partition, format, and mount a uSD card or eMMC card
     case $PLATFORM in
-       OdroidN2)      _install_OdroidN2_image ;;
-       OdroidXU4)     _install_OdroidXU4_image ;;
-       RPi64 | RPi32) _install_RPi4_image ;;
+       OdroidN2)   _install_OdroidN2_image ;;
+       OdroidXU4)  _install_OdroidXU4_image ;;
+       RPi64)      _install_RPi4_image ;;
     esac
 
     printf "\n\n${CYAN}Almost done! Just a couple of minutes more for the last step.${NC}\n\n"
     case $PLATFORM in
-       OdroidN2 | RPi64 | RPi32) umount MP1 MP2
-                                 rm -rf MP1 MP2 ;;
-       OdroidXU4)                umount MP1
-                                 rm -rf MP1 ;;
+       OdroidN2 | RPi64) umount MP1 MP2
+                         rm -rf MP1 MP2 ;;
+       OdroidXU4)        umount MP1
+                         rm -rf MP1 ;;
     esac
 
 #    rm ArchLinuxARM*
