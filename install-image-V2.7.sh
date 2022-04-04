@@ -75,7 +75,7 @@ _install_RPi4_image() {
         fi
     fi
     printf "\n\n${CYAN}Untarring the image...may take a few minutes.${NC}\n"
-    bsdtar -xpf enosLinuxARM-rpi-aarch64-latest.tar.gz -C MP2 ;;
+    bsdtar -xpf enosLinuxARM-rpi-aarch64-latest.tar.gz -C MP2
 
     printf "\n\n${CYAN}syncing files...may take a few minutes.${NC}\n"
     sync
