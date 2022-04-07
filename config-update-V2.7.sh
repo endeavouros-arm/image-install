@@ -21,7 +21,9 @@ _enable_wifi() {
               "${regdom[@]}" "" \
            3>&1 1>&2 2>&3)
            domain=$(echo $domain | awk '{print $1}')
-           sed -i 's/#WIRELESS_REGDOM="$domain"/WIRELESS_REGDOM="$domain"/g' /etc/conf.d/wireless-regdom
+           old="#WIRELESS_REGDOM=\"$domain\""
+           new="WIRELESS_REGDOM=\"$domain\""
+           sed -i "s|$old|$new|g" /etc/conf.d/wireless-regdom
            wifi-menu ;;
         1) clear ;;
     esac
