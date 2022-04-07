@@ -15,7 +15,7 @@ _partition_RPi4() {
     mklabel gpt \
     unit MiB \
     mkpart primary fat32 2MiB 202MiB \
-    mkpart primary ext4 202MiB $DEVICESIZE"MiB" \
+    mkpart primary $FILESYSTEMTYPE 202MiB $DEVICESIZE"MiB" \
     quit
 }
 
@@ -25,6 +25,21 @@ _partition_OdroidXU4() {
     unit mib \
     mkpart primary 2MiB $DEVICESIZE"MiB" \
     quit
+}
+
+_choose_filesystem_type() {
+    if [[ "$PLATFORM" == "RPi64" ]]; then
+        FILESYSTEMTYPE=$(whiptail --title "EndeavourOS ARM Setup - Filesystem type" --menu --notags "\n              Use the arrow keys to choose the filesystem type\n                         or Cancel to abort script\n\n" 15 80 5 \
+            "ext4" "ext4" \
+            "btrfs" "btrfs" \
+        3>&2 2>&1 1>&3)
+
+        if [[ "$FILESYSTEMTYPE" == "" ]]; then
+            exit
+        fi
+    else
+        FILESYSTEMTYPE="ext4"
+    fi
 }
 
 _install_OdroidN2_image() {
@@ -74,6 +89,24 @@ _install_RPi4_image() {
             exit
         fi
     fi
+
+    if [[ "$FILESYSTEMTYPE" == "btrfs" ]]; then
+        printf "\n\n${CYAN}Creating btrfs Subvolumes${NC}\n"
+        btrfs subvolume create MP2/@
+        btrfs subvolume create MP2/@home
+        btrfs subvolume create MP2/@snapshots
+        btrfs subvolume create MP2/@log
+        btrfs subvolume create MP2/@cache
+        umount MP2
+        o_btrfs=defaults,compress=zstd:4,noatime,commit=120
+        mount -o $o_btrfs,subvol=@ $PARTNAME2 MP2
+        mkdir -p MP2/{boot,home,var/log,var/cache}
+        mount -o $o_btrfs,subvol=@home $PARTNAME2 MP2/home
+        mount -o $o_btrfs,subvol=@snapshots $PARTNAME2 MP2/.snapshots
+        mount -o $o_btrfs,subvol=@log $PARTNAME2 MP2/var/log
+        mount -o $o_btrfs,subvol=@cache $PARTNAME2 MP2/var/cache
+    fi
+
     printf "\n\n${CYAN}Untarring the image...may take a few minutes.${NC}\n"
     bsdtar -xpf enosLinuxARM-rpi-aarch64-latest.tar.gz -C MP2
 
@@ -90,10 +123,18 @@ _install_RPi4_image() {
     printf "#\n# <file system>             <mount point>  <type>  <options>  <dump>  <pass>\n\n"  >> MP2/etc/fstab
     printf "$uuidno  /boot  vfat  defaults  0  0\n" >> MP2/etc/fstab
     # make /boot/cmdline.txt work with a UUID instead of a lable such as /dev/sda
+    if [[ "$FILESYSTEMTYPE" == "btrfs" ]]; then
+        genfstab -U MP2 >> MP2/etc/fstab
+    fi
     uuidno=$(lsblk -o UUID $PARTNAME2)
     uuidno=$(echo $uuidno | sed 's/ /=/g')
     old=$(awk '{print $1}' MP1/cmdline.txt)
-    new="root="$uuidno
+    if [[ "$FILESYSTEMTYPE" == "btrfs" ]]; then
+        boot_options="rootflags=subvol=@ rootfstype=btrfs fsck.repair=no"
+        new="root="$uuidno" "$boot_options
+    else
+        new="root="$uuidno
+    fi
     sed -i "s#$old#$new#" MP1/cmdline.txt
     cp config-update MP2/root
 }  # End of function _install_RPi4_image
@@ -174,7 +215,7 @@ _partition_format_mount() {
    esac
    printf "\npartition name = $DEVICENAME\n\n" >> /root/enosARM.log
    printf "\n${CYAN}Formatting storage device $DEVICENAME...${NC}\n"
-   printf "\n${CYAN}If \"/dev/sdx contains a ext4 file system Labelled XXXX\" or similar appears, Enter: y${NC}\n\n\n"
+   printf "\n${CYAN}If \"/dev/sdx contains an existing file system Labelled XXXX\" or similar appears, Enter: y${NC}\n\n\n"
 
    if [[ ${DEVICENAME:5:6} = "mmcblk" ]]
    then
@@ -185,7 +226,10 @@ _partition_format_mount() {
       OdroidN2 | RPi64) PARTNAME1=$DEVICENAME"1"
                         mkfs.fat $PARTNAME1   2>> /root/enosARM.log
                         PARTNAME2=$DEVICENAME"2"
-                        mkfs.ext4 $PARTNAME2   2>> /root/enosARM.log
+                        case $FILESYSTEMTYPE in
+                            ext4) mkfs.ext4 $PARTNAME2   2>> /root/enosARM.log ;;
+                           btrfs) mkfs.btrfs -f $PARTNAME2   2>> /root/enosARM.log ;;
+                        esac
                         mkdir MP1 MP2
                         mount $PARTNAME1 MP1
                         mount $PARTNAME2 MP2 ;;
@@ -238,11 +282,12 @@ _choose_device() {
 
 Main() {
     # VARIABLES
-    PLATFORM=" "     # e.g. OdroidN2, RPi4b, etc.
+    PLATFORM=" "     # e.g. OdroidN2, OdroidXU4, or RPi64
     DEVICENAME=" "   # storage device name e.g. /dev/sda
     DEVICESIZE="1"
     PARTNAME1=" "
     PARTNAME2=" "
+    FILESYSTEMTYPE=""
 
     # Declare color variables
     GREEN='\033[0;32m'
@@ -254,6 +299,7 @@ Main() {
     _check_if_root
     _check_all_apps_closed
     _choose_device
+    _choose_filesystem_type
     _partition_format_mount  # function to partition, format, and mount a uSD card or eMMC card
     case $PLATFORM in
        OdroidN2)   _install_OdroidN2_image ;;
@@ -262,8 +308,12 @@ Main() {
     esac
 
     printf "\n\n${CYAN}Almost done! Just a couple of minutes more for the last step.${NC}\n\n"
+
     case $PLATFORM in
-       OdroidN2 | RPi64) umount MP1 MP2
+       OdroidN2 | RPi64) if [[ "$FILESYSTEMTYPE" == "btrfs" ]]; then
+                            umount MP2/home MP2/var/log MP2/var/cache
+                         fi
+                         umount MP1 MP2
                          rm -rf MP1 MP2 ;;
        OdroidXU4)        umount MP1
                          rm -rf MP1 ;;
