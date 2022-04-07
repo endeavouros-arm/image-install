@@ -66,7 +66,7 @@ _install_OdroidN2_image() {
            printf "\# Static information about the filesystems.\n# See fstab(5) for details.\n\n# <file system> <dir> <type> <options> <dump> <pass>\n" > MP2/etc/fstab
            printf "/dev/sda1  /boot   vfat    defaults        0       0\n/dev/sda2  /   ext4   defaults     0    0\n" >> MP2/etc/fstab ;;
     esac
-    cp config-update MP2/root
+    cp $CONFIG_UPDATE MP2/root
 }   # End of function _install_OdroidN2_image
 
 _install_RPi4_image() {
@@ -134,7 +134,8 @@ _install_RPi4_image() {
         new="root="$uuidno
     fi
     sed -i "s#$old#$new#" MP1/cmdline.txt
-    cp config-update MP2/root
+    cp $CONFIG_UPDATE MP2/root
+    cp countrycodes MP2/root
 }  # End of function _install_RPi4_image
 
 _install_OdroidXU4_image() {
@@ -144,7 +145,7 @@ _install_OdroidXU4_image() {
     cd MP1/boot
     sh sd_fusing.sh $DEVICENAME
     cd ../..
-    cp config-update MP1/root
+    cp $CONFIG_UPDATE MP1/root
 }   # End of function _install_OdroidXU4_image
 
 
@@ -286,6 +287,7 @@ Main() {
     PARTNAME1=" "
     PARTNAME2=" "
     FILESYSTEMTYPE=""
+    CONFIG_UPDATE="config-update-V2.7.sh"
 
     # Declare color variables
     GREEN='\033[0;32m'
