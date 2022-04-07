@@ -94,7 +94,6 @@ _install_RPi4_image() {
         printf "\n\n${CYAN}Creating btrfs Subvolumes${NC}\n"
         btrfs subvolume create MP2/@
         btrfs subvolume create MP2/@home
-        btrfs subvolume create MP2/@snapshots
         btrfs subvolume create MP2/@log
         btrfs subvolume create MP2/@cache
         umount MP2
@@ -102,7 +101,6 @@ _install_RPi4_image() {
         mount -o $o_btrfs,subvol=@ $PARTNAME2 MP2
         mkdir -p MP2/{boot,home,var/log,var/cache}
         mount -o $o_btrfs,subvol=@home $PARTNAME2 MP2/home
-        mount -o $o_btrfs,subvol=@snapshots $PARTNAME2 MP2/.snapshots
         mount -o $o_btrfs,subvol=@log $PARTNAME2 MP2/var/log
         mount -o $o_btrfs,subvol=@cache $PARTNAME2 MP2/var/cache
     fi
