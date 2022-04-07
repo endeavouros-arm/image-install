@@ -152,7 +152,10 @@ _finish_up() {
     printf "\n\n${CYAN}Near the end of the script, the last pacman hook will display:\n\n${NC}Warn about old perl modules${CYAN}\n\nAt this point there might be a long delay\nThat is OK, please be patient.${NC}\n\n"
     sleep 5
     pacman -Syu --noconfirm
-    rm config-update
+    rm $CONFIG_UPDATE
+    if [ -f "countrycodes" ]; then  # if file countrycodes exits, delete it
+       rm countrycodes
+    fi
     git clone https://github.com/endeavouros-arm/install-script.git
     printf "\n\n${CYAN}Your Device is ready for installation of a Desktop Environment or Windows Manager.\n\nPress Return to reboot.${NC}\n"
     read -n 1 z
@@ -162,7 +165,8 @@ _finish_up() {
 ######################   Start of Script   #################################
 Main() {
 
-   # Declare color variables
+      CONFIG_UPDATE="config-update-V2.7.sh"
+      # Declare color variables
       GREEN='\033[0;32m'
       RED='\033[0;31m'
       CYAN='\033[0;36m'
