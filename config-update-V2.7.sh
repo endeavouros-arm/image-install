@@ -26,7 +26,7 @@ _enable_wifi() {
            old="#WIRELESS_REGDOM=\"$domain\""
            new="WIRELESS_REGDOM=\"$domain\""
            sed -i "s|$old|$new|g" /etc/conf.d/wireless-regdom
-           nmcli ;;
+           nmtui ;;
         1) clear ;;
     esac
 }
