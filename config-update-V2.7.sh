@@ -15,8 +15,8 @@ _enable_wifi() {
 
     whiptail  --title "EndeavourOS ARM Setup - Enable WiFi"  --yesno --defaultno "             It is always best to use a wired Ethernet connection.\n            But sometimes a wired connection is just not available.\n         Do you want to enable WiFi for the rest of the installation?\n\n" 10 80 15 3>&2 2>&1 1>&3
 
-    systemctl enable --now netctl.service
-    sleep 4
+#    systemctl enable --now netctl.service
+#    sleep 4
     case $? in
         0) readarray -t regdom < countrycodes
            domain=$(whiptail --title "EndeavourOS ARM Setup - Regulatory Domain" --menu "\n                 Please choose your WiFi Regulatory Domain.\n You can navigate to different sections with Page Up/Down or the A-Z keys." 30 80 20 \
@@ -26,7 +26,7 @@ _enable_wifi() {
            old="#WIRELESS_REGDOM=\"$domain\""
            new="WIRELESS_REGDOM=\"$domain\""
            sed -i "s|$old|$new|g" /etc/conf.d/wireless-regdom
-           wifi-menu ;;
+           nmcli ;;
         1) clear ;;
     esac
 }

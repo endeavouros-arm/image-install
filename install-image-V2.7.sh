@@ -34,7 +34,7 @@ _choose_filesystem_type() {
             "btrfs" "btrfs" \
         3>&2 2>&1 1>&3)
 
-        if [[ "$FILESYSTEMTYPE" == "" ]]; then
+        if [[ "$FILESYSTEMTYPE" == "" ]]; then   # if user chose to cancel
             exit
         fi
     else
