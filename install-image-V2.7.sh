@@ -320,7 +320,7 @@ Main() {
                          rm -rf MP1 ;;
     esac
 
-#    rm ArchLinuxARM*
+    rm enosLinuxARM*
 
     printf "\n\n${CYAN}End of script!${NC}\n"
     printf "\n${CYAN}Be sure to use a file manager to umount the device before removing the USB SD reader${NC}\n"
