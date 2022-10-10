@@ -77,7 +77,7 @@ _install_RPi4_image() {
     local totalurl
     local exit_status
 
-    url=$(curl https://github.com/pudges-place/images/releases | grep "enos-image-.*/enosLinuxARM-rpi-aarch64-latest.tar.gz" | sed s'#^.*pudges-place#pudges-place#'g | sed s'#latest.tar.gz.*#latest.tar.gz#'g | head -n 1)
+    url=$(curl https://api.github.com/repos/pudges-place/images/releases | grep "enos-image-.*/enosLinuxARM-rpi-aarch64-latest.tar.gz" | sed s'#^.*pudges-place#pudges-place#'g | sed s'#latest.tar.gz.*#latest.tar.gz#'g | head -n 1)
     totalurl="https://github.com/"$url
     wget $totalurl
     exit_status=$?
