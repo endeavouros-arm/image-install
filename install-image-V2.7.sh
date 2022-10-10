@@ -9,10 +9,10 @@ _partition_OdroidN2() {
     mkpart primary 258MiB $DEVICESIZE"MiB" \
     quit
 }
-
+# RPi4b refuses to boot a GPT-formatted SD card
 _partition_RPi4() {
     parted --script -a minimal $DEVICENAME \
-    mklabel gpt \
+    mklabel msdos \
     unit MiB \
     mkpart primary fat32 2MiB 202MiB \
     mkpart primary $FILESYSTEMTYPE 202MiB $DEVICESIZE"MiB" \
